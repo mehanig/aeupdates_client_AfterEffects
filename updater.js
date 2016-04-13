@@ -1,4 +1,4 @@
-/*
+﻿ /*
     json2.js
     2015-05-03
 
@@ -551,8 +551,12 @@ updater.MHNG_getCurrEpochTimeInMilSeconds = function () {
 
 updater.MHNG_getPrefs = function () {
     //alert("!!!AAAAAAALALALALALA" + this.MHNG_lastChecked);
-    if(app.settings.haveSetting("aeupdates", "last_checked") == false) this.MHNG_lastChecked = this.MHNG_getCurrEpochTimeInMilSeconds();
-        else this.MHNG_lastChecked = parseInt(app.settings.getSetting("aeupdates", "last_checked"));
+    if(app.settings.haveSetting("aeupdates", "last_checked") == false) {
+        this.MHNG_lastChecked = this.MHNG_getCurrEpochTimeInMilSeconds();
+        }
+        else {
+            this.MHNG_lastChecked = parseInt(app.settings.getSetting("aeupdates", "last_checked"));
+        }
 };
 
 updater.MHNG_setPrefs = function () {
@@ -629,22 +633,32 @@ updater.MHNG_ABSChecker = function (url) {
     var status = 0;
     var version = 0;
     try {
+        // var conn = new Socket();
+        // conn.open(url);
+        // conn.write("GET / HTTP/1.0\n\n");
+        // var resp = conn.read(1000);
+        // alert(resp);
         this.MHNG_getPrefs();
         //this.MHNG_setPrefs();
         //alert(this.MHNG_lastChecked + " AA " + this.MHNG_getCurrEpochTimeInMilSeconds());
         if ((this.MHNG_getCurrEpochTimeInMilSeconds() - this.MHNG_lastChecked > this._6HOURS  && this.MHNG_lastChecked < this.MHNG_getCurrEpochTimeInMilSeconds())){
             var r = this.MHNG_webRequest("GET", url);
             //alert(r);
+            while (r[r.length-1] === "\n" || r[r.length-1] === "\r") {
+                r = r.replace(/\r$/, ""); r = r.replace(/\n$/, "");
+            }
             var response_json =  JSON.parse(r);// now evaluate the string from the file
-            //$.writeln(my_JSON_object.toSource());
+            $.writeln(r);
             this.MHNG_setPrefs();
-            return response_json;
+            return {"response": response_json, "status": 1};
         } else {
             alert("No need to check!");
         }
     } catch (err) {
-        //alert("ERRORHERE:");
+        alert(err);
     }
+     this.MHNG_setPrefs();
+     return {status: 0}
     // return {status: status, version: version};
 };
 
@@ -652,9 +666,10 @@ updater.MHNG_buildAlertGUI = function () {
     var popUp_window = (new Window("palette", "", undefined, {resizeable: false}));
     popUp_window.alignChildren = ['left', 'top'];
     var cG = popUp_window.add("group{orientation:'column', alignChildren: ['left', 'top']}");
-    var textLine = cG.add("group{orientation: 'column',margins:[5,10,5,15]}");
-    textLine.add("statictext", undefined, "New version available.");
+    var textLine = cG.add("group{orientation: 'column',margins:[10,10,10,10]}");
+    textLine.add("statictext", undefined, "New version available.New version available.");
     textLine.add("statictext", undefined, "Download?");
+    textLine.add("statictext", undefined, "New version available.New version available.");
     var bttnLine = cG.add("group{orientation:'row'}");
     var okBttn = bttnLine.add("button", undefined, "OK").onClick = function () {
         popUp_window.close();
@@ -675,17 +690,13 @@ updater.check = function (settings) {
         // alert(Object.keys(result));
         // print
        // alert(settings.version + " " + result.origami.settings.current_version);
-        if (result.status == 1 && result.version != settings.version) {
-            if (typeof(settings.builder.GUI) !== 'undefined') {
+        if (result.status == 1 && result.response.version != settings.version) {
                 this.MHNG_buildAlertGUI();
                 // settings.builder.GUI(settings.builder.GUI_namespace);
-            } else {
-                alert("New Version available");
-            }
         }
     } else {
         alert('SORRY:(');
     }
 };
 
-updater.check({version: '1.2',  builder: 'true',  url: 'http://127.0.0.1'});
+updater.check({version: '1.2',  builder: 'true',  url: 'https://aeupdates.com/status/origami'});
