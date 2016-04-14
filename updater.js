@@ -583,9 +583,8 @@ var updater = {};
             if (updater.os() == "Win") {
                 var vbsFile = new File(updater.MHNG_WORKING_DIR + "\\" + "aeupdater" + "\\" + "curl.vbs");
                 vbsFile.open("w");
-                //alert("HERE:" + vbsFile.fsName);
                 vbsFile.encoding = "UTF-8";
-                //var vbsSrt = 'set namedArgs = WScript.Arguments.Named\nsMethod = namedArgs.Item("Method")\nsUrl = namedArgs.Item("URL")\nsRequest = namedArgs.Item("Query")\nHTTPPost sMethod, sUrl, sRequest\nFunction HTTPPost(sMethod, sUrl, sRequest)\n          set oHTTP = CreateObject("Microsoft.XMLHTTP")\n    If sMethod = "POST" Then\n        oHTTP.open "POST", sUrl,false\n    ElseIf sMethod = "GET" Then\n        oHTTP.open "GET", sUrl,false\n    End If\n          oHTTP.setRequestHeader "Content-Type", "application/x-www-form-urlencoded"\n          oHTTP.setRequestHeader "Content-Length", Len(sRequest)\n          oHTTP.send sRequest\n          HTTPPost = oHTTP.responseText\n          WScript.Echo HTTPPost\nEnd Function';
+                var vbsSrt = 'set namedArgs = WScript.Arguments.Named    sMethod = namedArgs.Item("Method")    sUrl = namedArgs.Item("URL")    sRequest = namedArgs.Item("Query")    HTTPPost sMethod, sUrl, sRequest    Function HTTPPost(sMethod, sUrl, sRequest)        If sMethod = "POST" Then            oHTTP.open "POST", sUrl, True            oHTTP.setRequestHeader "Content-Type", "application/x-www-form-urlencoded"            oHTTP.setRequestHeader "Content-Length", Len(sRequest)            oHTTP.send sRequest        ElseIf sMethod = "GET" Then            set oHTTP = CreateObject("MSXML2.ServerXMLHTTP.3.0")            oHTTP.setTimeouts 5000, 5000, 5000, 5000            oHTTP.setOption 2, 13056            oHTTP.open "GET", sUrl, False            oHTTP.send            HTTPPost = oHTTP.responseText            WScript.Echo HTTPPost            WScript.Quit        End If    End Function';
                 vbsFile.write(vbsSrt);
                 vbsFile.close();
                 curlCmd = 'cscript "' + wincurl + '" /Method:' + method + ' /URL:' + endpoint + ' /Query:' + query + ' //nologo';
