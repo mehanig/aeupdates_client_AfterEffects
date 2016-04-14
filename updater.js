@@ -1,4 +1,5 @@
-﻿    /*
+﻿
+/*
     json2.js
     2015-05-03
 
@@ -519,23 +520,21 @@ if (typeof JSON !== 'object') {
 }());
 
 
-
-
-
+    /* Creates checker for new version and checks for it
+     *  {
+     *  "scripts": {[{
+     *      "name": name of script
+     *      "product": Fancy name of script
+     *      "url": endpoint returning current available version
+     *      "version": current script version
+     *      "news": news for current version
+     *      },...
+     *   ]}
+     * */
 
 var updater = {};
 (function () {
-    /* Creates checker for new version and checks for it
-     *
-     *  settings: {
-     *   url: endpoint returning current available version
-     *   current_version: current script version
-     *   builder: GUI builder for window, default: Alert
-     *       GUI: gui
-     *   }
-     * */
 
-//dummy implementation
     updater.MHNG_parseResp = function (resp) {
         resp = "{a: 1}";
         // var my_JSON_object =  JSON.parse(resp);// now evaluate the string from the file
@@ -550,22 +549,24 @@ var updater = {};
     };
 
     updater.MHNG_getPrefs = function () {
-        //alert("!!!AAAAAAALALALALALA" + updater.MHNG_lastChecked);
         if (app.settings.haveSetting("aeupdates", "last_checked") == false) {
             updater.MHNG_lastChecked = updater.MHNG_getCurrEpochTimeInMilSeconds();
-        }
-        else {
+        } else {
             updater.MHNG_lastChecked = parseInt(app.settings.getSetting("aeupdates", "last_checked"));
+        }
+    //Not used yet
+        if (app.settings.haveSetting("aeupdates", "skipVersion") == false) {
+                updater.MHNG_skipVersion = "";
+        } else {
+            updater.MHNG_skipVersion = app.settings.getSetting("aeupdates", "skipVersion");
         }
     };
 
     updater.MHNG_setPrefs = function () {
-        //alert("---->" + updater.MHNG_lastChecked);
         app.settings.saveSetting("aeupdates", "last_checked", updater.MHNG_lastChecked);
     };
 
     updater.MHNG_WORKING_DIR = Folder.userData.fsName;
-
 
     /*
      * @method : either "POST" or "GET"
@@ -576,19 +577,17 @@ var updater = {};
     updater.MHNG_webRequest = function (method, endpoint, query) {
         var response = null;
         var wincurl = updater.MHNG_WORKING_DIR + "\\aeupdater" + "\\" + "curl.vbs"; //the path to the .vbs file
-        alert(wincurl);
         var curlCmd = '';
         try {
             updater.createAeUpdatesFolderIfNone();
             if (updater.os() == "Win") {
-                //var vbsFile = new File(updater.MHNG_WORKING_DIR + "\\" + "aeupdater" + "\\" + "curl.vbs");
-                //vbsFile.open("w");
+                var vbsFile = new File(updater.MHNG_WORKING_DIR + "\\" + "aeupdater" + "\\" + "curl.vbs");
+                vbsFile.open("w");
                 //alert("HERE:" + vbsFile.fsName);
-                //vbsFile.encoding = "UTF-8";
+                vbsFile.encoding = "UTF-8";
                 //var vbsSrt = 'set namedArgs = WScript.Arguments.Named\nsMethod = namedArgs.Item("Method")\nsUrl = namedArgs.Item("URL")\nsRequest = namedArgs.Item("Query")\nHTTPPost sMethod, sUrl, sRequest\nFunction HTTPPost(sMethod, sUrl, sRequest)\n          set oHTTP = CreateObject("Microsoft.XMLHTTP")\n    If sMethod = "POST" Then\n        oHTTP.open "POST", sUrl,false\n    ElseIf sMethod = "GET" Then\n        oHTTP.open "GET", sUrl,false\n    End If\n          oHTTP.setRequestHeader "Content-Type", "application/x-www-form-urlencoded"\n          oHTTP.setRequestHeader "Content-Length", Len(sRequest)\n          oHTTP.send sRequest\n          HTTPPost = oHTTP.responseText\n          WScript.Echo HTTPPost\nEnd Function';
-                //vbsFile.write(vbsSrt);
-                //vbsFile.close();
-                query = "none";
+                vbsFile.write(vbsSrt);
+                vbsFile.close();
                 curlCmd = 'cscript "' + wincurl + '" /Method:' + method + ' /URL:' + endpoint + ' /Query:' + query + ' //nologo';
             } else {
                 if (method === "POST") {
@@ -630,17 +629,8 @@ var updater = {};
     };
 
     updater.MHNG_ABSChecker = function (url) {
-        var status = 0;
-        var version = 0;
         try {
-            // var conn = new Socket();
-            // conn.open(url);
-            // conn.write("GET / HTTP/1.0\n\n");
-            // var resp = conn.read(1000);
-            // alert(resp);
             updater.MHNG_getPrefs();
-            //updater.MHNG_setPrefs();
-            //alert(updater.MHNG_lastChecked + " AA " + updater.MHNG_getCurrEpochTimeInMilSeconds());
             if ((updater.MHNG_getCurrEpochTimeInMilSeconds() - updater.MHNG_lastChecked > updater._6HOURS && updater.MHNG_lastChecked < updater.MHNG_getCurrEpochTimeInMilSeconds())) {
                 var r = updater.MHNG_webRequest("GET", url);
                 //alert(r);
@@ -649,9 +639,9 @@ var updater = {};
                     r = r.replace(/\n$/, "");
                 }
                 var response_json = JSON.parse(r);// now evaluate the string from the file
-                $.writeln(r);
+                $.writeln(response_json.scripts[0].news);
                 updater.MHNG_setPrefs();
-                return {"response": response_json, "status": 1};
+                return {"response": response_json.scripts, "status": 1};
             } else {
                 alert("No need to check!");
             }
@@ -660,47 +650,45 @@ var updater = {};
         }
         updater.MHNG_setPrefs();
         return {status: 0};
-        // return {status: status, version: version};
     };
 
-    updater.MHNG_buildAlertGUI = function () {
+    updater.MHNG_buildAlertGUI = function (script) {
+        script = script[0];
         var popUp_window = (new Window("palette", "", undefined, {resizeable: false}));
-        popUp_window.alignChildren = ['left', 'top'];
-        var cG = popUp_window.add("group{orientation:'column', alignChildren: ['left', 'top']}");
-        var textLine = cG.add("group{orientation: 'column',margins:[10,10,10,10]}");
-        textLine.add("statictext", undefined, "New version available.New version available.");
-        textLine.add("statictext", undefined, "Download?");
-        textLine.add("statictext", undefined, "New version available.New version available.");
-        var bttnLine = cG.add("group{orientation:'row'}");
-        var okBttn = bttnLine.add("button", undefined, "OK").onClick = function () {
-            popUp_window.close();
-            //IMPLEMENT LOGIC TO OPEN AESCRIPTS HERE
-        };
-        var nopeBttn = bttnLine.add("button", undefined, "NOPE").onClick = function () {
-            popUp_window.close();
-        };
+        popUp_window.alignChildren = ['center', 'top'];
+            var cG = popUp_window.add("group{orientation:'column', alignChildren: ['left', 'top']}");
+                var textLine = cG.add("group{orientation: 'column', alignChildren: ['left', 'top'], margins:[10,10,10,0]}");
+                    textLine.add("statictext", undefined, script.product + " have new version available. (" + script.version + ")");
+                    textLine.add("statictext", undefined, "You current version: " +  updater.settings.version);
+                    textLine.add("statictext", undefined, "Few things you will be missing: ");
+                var NewsLine = cG.add("group{orientation: 'column', alignChildren: ['center', 'top'], margins:[20,0,10,15]}");
+                    NewsLine.add("statictext", undefined, "- " + script.news);
+            var bttnLine = popUp_window.add("group{orientation:'row', alignChildren: ['center', 'top'], margins:[0,0,0,0]}");
+                var okBttn = bttnLine.add("button", undefined, "Download").onClick = function () {
+                    var urlLaunchCode = (updater.os() == "Mac")? "Open" : "Start";
+                    system.callSystem(urlLaunchCode + " " +  script.url);
+                };
+                var nopeBttn = bttnLine.add("button", undefined, "Later").onClick = function () {
+                    popUp_window.close();
+                };
         okBttn.size = nopeBttn.size = [40, 25];
         popUp_window.show();
     };
 
     updater.check = function (settings) {
         updater.MHNG_getPrefs();
-        // app.settings.saveSetting("aeupdates", "last_checked", "HI");
+        updater.settings = settings;
         if (settings.builder) {
             var result = updater.MHNG_ABSChecker(settings.url);
-            // alert(Object.keys(result));
-            // print
-            // alert(settings.version + " " + result.origami.settings.current_version);
-            if (result.status == 1 && result.response.current_version != settings.version) {
-                updater.MHNG_buildAlertGUI();
-                $.writeln(result.response.current_version);
+            if (result.status == 1 && result.response.version != settings.version) {
+                updater.MHNG_buildAlertGUI(result.response);
+                $.writeln(result.response.version);
                 // settings.builder.GUI(settings.builder.GUI_namespace);
             }
         } else {
             alert('SORRY:(');
         }
     };
-   //updater.check({version: '1.2',  builder: 'true',  url: 'https://aeupdates.com/status/origami'});
 }());
 updater.check({version: '1.2',  builder: 'true',  url: 'https://aeupdates.com/status/origami'});
 
