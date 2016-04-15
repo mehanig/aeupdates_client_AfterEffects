@@ -549,7 +549,7 @@ var updater = {};
     };
 
     updater.MHNG_getPrefs = function () {
-        if (app.settings.haveSetting("aeupdates", "last_checkegd") == false) {
+        if (app.settings.haveSetting("aeupdates", "last_checked") == false) {
             updater.MHNG_lastChecked = "0";
         } else {
             updater.MHNG_lastChecked = parseInt(app.settings.getSetting("aeupdates", "last_checked"));
@@ -639,6 +639,7 @@ var updater = {};
                 }
                 var response_json = JSON.parse(r);// now evaluate the string from the file
                 $.writeln(response_json.scripts[0].news);
+                updater.MHNG_lastChecked = updater.MHNG_getCurrEpochTimeInMilSeconds();
                 updater.MHNG_setPrefs();
                 return {"response": response_json.scripts, "status": 1};
             } else {
