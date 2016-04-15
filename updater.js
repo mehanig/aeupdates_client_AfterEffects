@@ -549,8 +549,8 @@ var updater = {};
     };
 
     updater.MHNG_getPrefs = function () {
-        if (app.settings.haveSetting("aeupdates", "last_checked") == false) {
-            updater.MHNG_lastChecked = updater.MHNG_getCurrEpochTimeInMilSeconds();
+        if (app.settings.haveSetting("aeupdates", "last_checkegd") == false) {
+            updater.MHNG_lastChecked = "0";
         } else {
             updater.MHNG_lastChecked = parseInt(app.settings.getSetting("aeupdates", "last_checked"));
         }
