@@ -535,6 +535,10 @@ if (typeof JSON !== 'object') {
 var updater = {};
 (function () {
 
+    // Array.isArray = Array.isArray || function(o) {
+    // return Boolean(o && Object.prototype.toString.call(Object(o)) === '[object Array]');
+    // };
+
     updater.MHNG_parseResp = function (resp) {
         resp = "{a: 1}";
         // var my_JSON_object =  JSON.parse(resp);// now evaluate the string from the file
@@ -662,7 +666,12 @@ var updater = {};
                     textLine.add("statictext", undefined, "You current version: " +  updater.settings.version);
                     textLine.add("statictext", undefined, "Few things you will be missing: ");
                 var NewsLine = cG.add("group{orientation: 'column', alignChildren: ['center', 'top'], margins:[20,0,10,15]}");
-                    NewsLine.add("statictext", undefined, "- " + script.news);
+                    for (var i = 0; i < script.news.length; i++ ) {
+                        NewsLine.add("statictext", undefined, script.news[i].ver + ": ");
+                        for (var j=0; j < script.news[i].changes.length; j++){
+                            NewsLine.add("statictext", undefined, "- " + script.news[i].changes[j]);
+                        }
+                    }
             var bttnLine = popUp_window.add("group{orientation:'row', alignChildren: ['center', 'top'], margins:[0,0,0,0]}");
                 var okBttn = bttnLine.add("button", undefined, "Download").onClick = function () {
                     var urlLaunchCode = (updater.os() == "Mac")? "Open" : "Start";
