@@ -558,11 +558,10 @@ var updater = {};
         } else {
             updater.MHNG_lastChecked = parseInt(app.settings.getSetting("aeupdates", "last_checked"));
         }
-    //Not used yet
-        if (app.settings.haveSetting("aeupdates", "skipVersion") == false) {
-                updater.MHNG_skipVersion = "";
+        if (app.settings.haveSetting("aeupdates", "skip_if_version") == false) {
+                updater.MHNG_skipVersion = "-1337";
         } else {
-            updater.MHNG_skipVersion = app.settings.getSetting("aeupdates", "skipVersion");
+            updater.MHNG_skipVersion = app.settings.getSetting("aeupdates", "skip_if_version");
         }
     };
 
@@ -583,8 +582,8 @@ var updater = {};
         var wincurl = updater.MHNG_WORKING_DIR + "\\aeupdater" + "\\" + "curl.vbs"; //the path to the .vbs file
         var curlCmd = '';
         try {
-            updater.createAeUpdatesFolderIfNone();
             if (updater.os() == "Win") {
+                updater.createAeUpdatesFolderIfNone();
                 var vbsFile = new File(updater.MHNG_WORKING_DIR + "\\" + "aeupdater" + "\\" + "curl.vbs");
                 vbsFile.open("w");
                 vbsFile.encoding = "UTF-8";
@@ -615,7 +614,8 @@ var updater = {};
         return app_os;
     };
 
-    updater._6HOURS = 600;
+    updater._6HOURS = 60 * 6 * 1000;
+    updater._6HOURS = 60;
 
     updater.createAeUpdatesFolderIfNone = function () {
         if (updater.os === "Win") {
@@ -626,11 +626,12 @@ var updater = {};
         if (!f.exists) {
             var createdFolder = f.create();
             if (!createdFolder) {
-                alert("Some Error occured during creating tmp folder");
+                // alert("Some Error occured during creating tmp folder");
             }
         }
     };
 
+    //return first script from list!!1
     updater.MHNG_ABSChecker = function (url) {
         try {
             updater.MHNG_getPrefs();
@@ -642,22 +643,27 @@ var updater = {};
                     r = r.replace(/\n$/, "");
                 }
                 var response_json = JSON.parse(r);// now evaluate the string from the file
-                $.writeln(response_json.scripts[0].news);
+                // $.writeln(response_json.scripts[0].news);
                 updater.MHNG_lastChecked = updater.MHNG_getCurrEpochTimeInMilSeconds();
                 updater.MHNG_setPrefs();
-                return {"response": response_json.scripts, "status": 1};
+                return {"response": response_json.scripts[0], "status": 1};
             } else {
-                alert("No need to check!");
+                // alert("No need to check!");
             }
         } catch (err) {
-            alert(err);
+            // alert(err);
         }
         updater.MHNG_setPrefs();
         return {status: 0};
     };
 
+    updater.MHNG_markVersionAsSkipped = function (ver) {
+      app.settings.saveSetting("aeupdates", "skip_if_version", ver);
+    };
+
+    //TODO: USES ONLY FIRST SCRIPT
     updater.MHNG_buildAlertGUI = function (script) {
-        script = script[0];
+        // script = script[0];
         var popUp_window = (new Window("palette", "", undefined, {resizeable: false}));
         popUp_window.alignChildren = ['center', 'top'];
             var cG = popUp_window.add("group{orientation:'column', alignChildren: ['left', 'top']}");
@@ -676,6 +682,11 @@ var updater = {};
                 var okBttn = bttnLine.add("button", undefined, "Download").onClick = function () {
                     var urlLaunchCode = (updater.os() == "Mac")? "Open" : "Start";
                     system.callSystem(urlLaunchCode + " " +  script.url);
+                    popUp_window.close();
+                };
+                var skipBttn = bttnLine.add("button", undefined, "Skip Version").onClick = function () {
+                    updater.MHNG_markVersionAsSkipped(script.version);
+                    popUp_window.close();
                 };
                 var nopeBttn = bttnLine.add("button", undefined, "Later").onClick = function () {
                     popUp_window.close();
@@ -689,13 +700,16 @@ var updater = {};
         updater.settings = settings;
         if (settings.builder) {
             var result = updater.MHNG_ABSChecker(settings.url);
-            if (result.status == 1 && result.response.version != settings.version) {
+
+            //Display Window is 1) response is correct 2) version is not equal to latest 3)user not set response version as skipped
+            // alert(updater.MHNG_skipVersion +  " " + result.response.version);
+            if (result.status == 1 && result.response.version != settings.version && updater.MHNG_skipVersion != result.response.version) {
                 updater.MHNG_buildAlertGUI(result.response);
-                $.writeln(result.response.version);
+                // $.writeln(result.response.version);
                 // settings.builder.GUI(settings.builder.GUI_namespace);
             }
         } else {
-            alert('SORRY:(');
+            // alert('SORRY:(');
         }
     };
 }());
