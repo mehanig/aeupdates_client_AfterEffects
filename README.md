@@ -7,7 +7,7 @@
 example: `updater.check({version: '1.2',  builder: 'true',  url: 'https://aeupdates.com/status/origami'});`
 3. PROFIT
 
-<h2>How to use with CEP panels<h2>
+<h2>How to use with CEP panels</h2>
 1.You don't need to use it with CEP panels, because there is ability to make requests to url by default, so all is needed
 is to register at aeupdates.com and make request to proper endpoint
 
