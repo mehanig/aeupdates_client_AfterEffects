@@ -539,34 +539,30 @@ var updater = {};
     // return Boolean(o && Object.prototype.toString.call(Object(o)) === '[object Array]');
     // };
 
-    updater.MHNG_parseResp = function (resp) {
-        resp = "{a: 1}";
-        // var my_JSON_object =  JSON.parse(resp);// now evaluate the string from the file
-        // alert(my_JSON_object.toSource());
-        return {status: 1, version: '1.2'}
-    };
-
     updater.MHNG_getCurrEpochTimeInMilSeconds = function () {
         var D = new Date();
         //alert("OK:" + parseInt(D.setUTCDate()));
         return parseInt(D.setUTCDate());
     };
 
-    updater.MHNG_getPrefs = function () {
-        if (app.settings.haveSetting("aeupdates", "last_checked") == false) {
+    updater.MHNG_getPrefs = function (script_postfix) {
+        if (app.settings.haveSetting("aeupdates"+"_"+script_postfix, "last_checked") == false) {
             updater.MHNG_lastChecked = "0";
         } else {
-            updater.MHNG_lastChecked = parseInt(app.settings.getSetting("aeupdates", "last_checked"));
+            updater.MHNG_lastChecked = parseInt(app.settings.getSetting("aeupdates"+"_"+script_postfix, "last_checked"));
         }
-        if (app.settings.haveSetting("aeupdates", "skip_if_version") == false) {
+        if (app.settings.haveSetting("aeupdates"+"_"+script_postfix, "skip_if_version") == false) {
                 updater.MHNG_skipVersion = "-1337";
         } else {
-            updater.MHNG_skipVersion = app.settings.getSetting("aeupdates", "skip_if_version");
+            updater.MHNG_skipVersion = app.settings.getSetting("aeupdates"+"_"+script_postfix, "skip_if_version");
         }
+        if (app.settings.haveSetting("aeupdates"+"_"+script_postfix, 'check_for_updates') === false) this.MHNG_check_for_updates= "true";
+            else this.MHNG_check_for_updates= app.settings.getSetting("aeupdates"+"_"+script_postfix, "check_for_updates");
     };
 
-    updater.MHNG_setPrefs = function () {
-        app.settings.saveSetting("aeupdates", "last_checked", updater.MHNG_lastChecked);
+    updater.MHNG_setPrefs = function (script_postfix) {
+        app.settings.saveSetting("aeupdates"+"_"+script_postfix, "last_checked", updater.MHNG_lastChecked);
+        app.settings.saveSetting("aeupdates"+"_"+script_postfix, "check_for_updates", updater.MHNG_check_for_updates);
     };
 
     updater.MHNG_WORKING_DIR = Folder.userData.fsName;
@@ -634,7 +630,7 @@ var updater = {};
     //return first script from list!!1
     updater.MHNG_ABSChecker = function (url) {
         try {
-            updater.MHNG_getPrefs();
+            updater.MHNG_getPrefs(updater.settings.name);
             if ((updater.MHNG_getCurrEpochTimeInMilSeconds() - updater.MHNG_lastChecked > updater._6HOURS && updater.MHNG_lastChecked < updater.MHNG_getCurrEpochTimeInMilSeconds())) {
                 var r = updater.MHNG_webRequest("GET", url);
                 //alert(r);
@@ -645,7 +641,7 @@ var updater = {};
                 var response_json = JSON.parse(r);// now evaluate the string from the file
                 // $.writeln(response_json.scripts[0].news);
                 updater.MHNG_lastChecked = updater.MHNG_getCurrEpochTimeInMilSeconds();
-                updater.MHNG_setPrefs();
+                updater.MHNG_setPrefs(updater.settings.name);
                 return {"response": response_json.scripts[0], "status": 1};
             } else {
                 // alert("No need to check!");
@@ -653,12 +649,12 @@ var updater = {};
         } catch (err) {
             // alert(err);
         }
-        updater.MHNG_setPrefs();
+        updater.MHNG_setPrefs(updater.settings.name);
         return {status: 0};
     };
 
     updater.MHNG_markVersionAsSkipped = function (ver) {
-      app.settings.saveSetting("aeupdates", "skip_if_version", ver);
+      app.settings.saveSetting("aeupdates"+"_"+script_postfix, "skip_if_version", ver);
     };
 
     //TODO: USES ONLY FIRST SCRIPT
@@ -667,37 +663,52 @@ var updater = {};
         var popUp_window = (new Window("palette", "", undefined, {resizeable: false}));
         popUp_window.alignChildren = ['center', 'top'];
             var cG = popUp_window.add("group{orientation:'column', alignChildren: ['left', 'top']}");
+                var content = "";
                 var textLine = cG.add("group{orientation: 'column', alignChildren: ['left', 'top'], margins:[10,10,10,0]}");
                     textLine.add("statictext", undefined, script.product + " have new version available. (" + script.version + ")");
                     textLine.add("statictext", undefined, "You current version: " +  updater.settings.version);
                     textLine.add("statictext", undefined, "Few things you will be missing: ");
-                var NewsLine = cG.add("group{orientation: 'column', alignChildren: ['center', 'top'], margins:[20,0,10,15]}");
                     for (var i = 0; i < script.news.length; i++ ) {
-                        NewsLine.add("statictext", undefined, script.news[i].ver + ": ");
+                        content += script.news[i].ver + ": \n";
                         for (var j=0; j < script.news[i].changes.length; j++){
-                            NewsLine.add("statictext", undefined, "- " + script.news[i].changes[j]);
+                            content += "-  " + script.news[i].changes[j] + "\n";
                         }
+                        content += "\n";
                     }
+        var checkForUpdatesCheckbox = cG.add("checkbox", undefined, "Check for updates");
+        checkForUpdatesCheckbox.value = (updater.MHNG_check_for_updates === 'true');
+        var txt = cG.add("group{orientation: 'column', alignChildren:['left', 'top'], margins: [10,0,0,0], spacing: 5}").add("edittext", undefined, content, {multiline: true, scrolling: true, readonly: true});
+        txt.maximumSize = [350, 200];
+        txt.size = [350, 100];
             var bttnLine = popUp_window.add("group{orientation:'row', alignChildren: ['center', 'top'], margins:[0,0,0,0]}");
                 var okBttn = bttnLine.add("button", undefined, "Download").onClick = function () {
                     var urlLaunchCode = (updater.os() == "Mac")? "Open" : "Start";
                     system.callSystem(urlLaunchCode + " " +  script.url);
+                    updater.MHNG_check_for_updates = checkForUpdatesCheckbox.value;
+                    updater.MHNG_setPrefs(updater.settings.name);
                     popUp_window.close();
                 };
                 var skipBttn = bttnLine.add("button", undefined, "Skip Version").onClick = function () {
                     updater.MHNG_markVersionAsSkipped(script.version);
+                    updater.MHNG_check_for_updates = checkForUpdatesCheckbox.value;
+                    updater.MHNG_setPrefs(updater.settings.name);
                     popUp_window.close();
                 };
                 var nopeBttn = bttnLine.add("button", undefined, "Later").onClick = function () {
+                    updater.MHNG_check_for_updates = checkForUpdatesCheckbox.value;
+                    updater.MHNG_setPrefs(updater.settings.name);
                     popUp_window.close();
                 };
-        okBttn.size = nopeBttn.size = [40, 25];
+        okBttn.size = nopeBttn.size = skipBttn.size = [40, 25];
         popUp_window.show();
     };
 
     updater.check = function (settings) {
-        updater.MHNG_getPrefs();
+        updater.MHNG_getPrefs(settings.name);
         updater.settings = settings;
+        if (updater.MHNG_check_for_updates === 'false') {
+            return null;
+        }
         if (settings.builder) {
             var result = updater.MHNG_ABSChecker(settings.url);
 
@@ -713,5 +724,5 @@ var updater = {};
         }
     };
 }());
-updater.check({version: '1.2',  builder: 'true',  url: 'https://aeupdates.com/status/origami'});
+updater.check({version: '1.2.45sd', name:"origami",  builder: 'true',  url: 'https://aeupdates.com/status/origami'});
 
