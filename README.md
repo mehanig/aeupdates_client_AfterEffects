@@ -4,7 +4,7 @@
 2. Before or after main tread execution insert `updater.chech(obj)` call with obj containts this fields:
     - version: current version of your script
     - url: url to make a request and receive all information about current version and news
-example: `updater.check({version: '1.2',  builder: 'true',  url: 'https://aeupdates.com/status/origami'});`
+example: `updater.check({version: '1.2', name:'your_script_name',  builder: 'true',  url: 'https://aeupdates.com/status/origami'});`
 3. PROFIT
 
 <h2>How to use with CEP panels</h2>
