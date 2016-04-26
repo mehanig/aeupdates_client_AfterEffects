@@ -9,14 +9,14 @@ example: `updater.check({version: '1.2', name:'your_script_name',  builder: 'tru
 
 <h2>How to use with CEP panels</h2>
 1.You don't need to use it with CEP panels, because there is ability to make requests to url by default, so all is needed
-is to register at aeupdates.com and make request to proper endpoint
+is to register at aeupdates.com and make request to proper endpoint. (<a href="https://github.com/mehanig/aeupdates">Aeupdates.com github</a>, it's still in development /26 Apr 2016)
 
-Extras:
-    Keep in mind that `updater` call is blocking so if server is freezed, AE will freeze.
-    But, good news is that we expected that kind of problems and:
-    1) All requests are limiter by time (4 sec)
-    2) Requests are made only once 6 hours (by default)
-    If server is not available or responce isn't valid, there will be no errors and users will not notice any kind of
+<h2>Extras:</h2>
+Keep in mind that `updater` call is blocking so if server is freezed, AE will freeze.
+But, good news is that we expected that kind of problems and:
+ 1) All requests are limiter by time (4 sec)
+ 2) Requests are made only once 6 hours (by default)
+ If server is not available or response isn't valid, there will be no errors and users will not notice any kind of
     unexpected behavior during usage of your script
 
 tips:
