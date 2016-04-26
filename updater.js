@@ -724,5 +724,5 @@ var updater = {};
         }
     };
 }());
-updater.check({version: '1.2.45sd', name:"origami",  builder: 'true',  url: 'https://aeupdates.com/status/origami'});
+//updater.check({version: '1.2.45sd', name:"origami",  builder: 'true',  url: 'https://aeupdates.com/status/origami'});
 
