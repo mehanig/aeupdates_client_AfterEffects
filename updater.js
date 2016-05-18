@@ -536,6 +536,9 @@ var updater = {};
 (function () {
 
     // Calculate UniqueUserID for statistic purpose
+    // UID is calculated based on first file execution (Time of execution in milliseconds,
+    // and with good chance it will be unique for many users.
+    // I don't use any random functions because there are few AE versions with broken Math.Random
     (function() {
         if (app.settings.haveSetting("aeupdates", "user_uid") == false) {
             var uid =  new Date();
