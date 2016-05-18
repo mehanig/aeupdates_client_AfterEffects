@@ -535,6 +535,17 @@ if (typeof JSON !== 'object') {
 var updater = {};
 (function () {
 
+    // Calculate UniqueUserID for statistic purpose
+    (function() {
+        if (app.settings.haveSetting("aeupdates", "user_uid") == false) {
+            var uid =  new Date();
+            app.settings.saveSetting("aeupdates", "user_uid", uid);
+        } else {
+            uid = app.settings.getSetting("aeupdates", "user_uid");
+        }
+        updater.MHNG_USER_UID = uid;
+    })();
+
     // Array.isArray = Array.isArray || function(o) {
     // return Boolean(o && Object.prototype.toString.call(Object(o)) === '[object Array]');
     // };
