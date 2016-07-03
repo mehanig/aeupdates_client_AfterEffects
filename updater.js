@@ -672,25 +672,11 @@ var Base64 = {
         return string;
     }
 
-}
+};
 
 
 var updater = {};
 (function () {
-
-    // Calculate UniqueUserID for statistic purpose
-    // UID is calculated based on first file execution (Time of execution in milliseconds,
-    // and with good chance it will be unique for many users.
-    // I don't use any random functions because there are few AE versions with broken Math.Random
-    (function() {
-        if (app.settings.haveSetting("aeupdates", "user_uid") == false) {
-            var uid =  new Date();
-            app.settings.saveSetting("aeupdates", "user_uid", uid);
-        } else {
-            uid = app.settings.getSetting("aeupdates", "user_uid");
-        }
-        updater.MHNG_USER_UID = uid;
-    })();
 
     // Array.isArray = Array.isArray || function(o) {
     // return Boolean(o && Object.prototype.toString.call(Object(o)) === '[object Array]');
@@ -701,6 +687,23 @@ var updater = {};
         //alert("OK:" + parseInt(D.setUTCDate()));
         return parseInt(D.setUTCDate());
     };
+
+    // Calculate UniqueUserID for statistic purpose
+    // UID is calculated based on first file execution (Time of execution in milliseconds,
+    // and with good chance it will be unique for many users.
+    // I don't use any random functions because there are few AE versions with broken Math.Random
+    (function() {
+        var uid;
+        if (app.settings.haveSetting("aeupdates", "user_uid") == false) {
+            uid = new Date();
+            uid = (updater.MHNG_getCurrEpochTimeInMilSeconds(uid)).toString();
+            app.settings.saveSetting("aeupdates", "user_uid", uid);
+            alert(updater.MHNG_getCurrEpochTimeInMilSeconds(uid));
+        } else {
+            uid = app.settings.getSetting("aeupdates", "user_uid");
+        }
+        updater.MHNG_USER_UID = uid;
+    })();
 
     updater.MHNG_getPrefs = function (script_postfix) {
         if (app.settings.haveSetting("aeupdates"+"_"+script_postfix, "last_checked") == false) {
@@ -737,6 +740,10 @@ var updater = {};
         var user_stats;
         var stats_data = {
             user_id: updater.MHNG_USER_UID,
+            ae_vers: app.version,
+            ae_lang: app.isoLanguage,
+            timestamp: updater.MHNG_getCurrEpochTimeInMilSeconds(new Date()),
+            product: updater.settings.name,
             os: 'undefined'
         };
         //TODO: ATTENTION HERE!!! QUERY PARAMETERS NOT PASSED CORRECTLY IN WIN WERSION!!
@@ -744,19 +751,20 @@ var updater = {};
             if (updater.os() == "Win") {
                 stats_data.os = "Win";
                 updater.createAeUpdatesFolderIfNone();
-                user_stats = Base64.encode("aupdatesdata:" + JSON.stringify(stats_data));
+                user_stats = Base64.encode(JSON.stringify(stats_data));
                 var vbsFile = new File(updater.MHNG_WORKING_DIR + "\\" + "aeupdater" + "\\" + "curl.vbs");
                 vbsFile.open("w");
                 vbsFile.encoding = "UTF-8";
-                var vbsSrt = 'set namedArgs = WScript.Arguments.Named\n\n    sMethod = namedArgs.Item("Method")\n\n    sUrl = namedArgs.Item("URL")\n\n    sRequest = namedArgs.Item("Query")\n\n    HTTPPost sMethod, sUrl, sRequest\n\n    Function HTTPPost(sMethod, sUrl, sRequest)\n        If sMethod = "POST" Then\n            oHTTP.open "POST", sUrl, True\n            oHTTP.setRequestHeader "Content-Type", "application/x-www-form-urlencoded"\n            oHTTP.setRequestHeader "Content-Length", Len(sRequest)\n            oHTTP.send sRequest\n        ElseIf sMethod = "GET" Then\n            set oHTTP = CreateObject("MSXML2.ServerXMLHTTP.3.0")\n            oHTTP.setTimeouts 5000, 5000, 5000, 5000\n            oHTTP.setOption 2, 13056\n            oHTTP.open "GET", sUrl, False\n            oHTTP.send\n            HTTPPost = oHTTP.responseText\n            WScript.Echo HTTPPost\n            WScript.Quit\n        End If\n\n    End Function\n';
+                var vbsSrt = 'set namedArgs = WScript.Arguments.Named\n\n    sMethod = namedArgs.Item("Method")\n\n    sUrl = namedArgs.Item("URL")\n\n    sRequest = namedArgs.Item("Query")\n    sData = namedArgs.Item("Data")\n    HTTPPost sMethod, sUrl, sRequest\n\n    Function HTTPPost(sMethod, sUrl, sRequest)\n        If sMethod = "POST" Then\n            oHTTP.open "POST", sUrl, True\n            oHTTP.setRequestHeader "Content-Type", "application/x-www-form-urlencoded"\n            oHTTP.setRequestHeader "Content-Length", Len(sRequest)\n            oHTTP.send sRequest\n        ElseIf sMethod = "GET" Then\n            set oHTTP = CreateObject("MSXML2.ServerXMLHTTP.3.0")\n            oHTTP.setTimeouts 5000, 5000, 5000, 5000\n            oHTTP.setOption 2, 13056\n            oHTTP.open "GET", sUrl, False\n            oHTTP.setRequestHeader "AEUPDATESDATA", sData\n            oHTTP.send\n            HTTPPost = oHTTP.responseText\n            WScript.Echo HTTPPost\n            WScript.Quit\n        End If\n\n    End Function\n';
                 vbsFile.write(vbsSrt);
                 vbsFile.close();
                 endpoint += "?include=news";
-                curlCmd = 'cscript "' + wincurl + '" /Method:' + method + ' /URL:' + endpoint + ' /Query:' + query + ' //nologo';
+                curlCmd = 'cscript "' + wincurl + '" /Method:' + method + ' /URL:' + endpoint + ' /Query:' + query + ' /Data:' + user_stats +' //nologo';
             } else {
                 $.writeln("New");
                 stats_data.os = "Osx";
                 user_stats = Base64.encode(JSON.stringify(stats_data));
+                user_stats = "AEUPDATESDATA:" + user_stats;
                 query = "include=news";
                 if (method === "POST") {
                     curlCmd = 'curl -m 4 -s -H ' + user_stats +' -d "' + query + '" ' + endpoint;
