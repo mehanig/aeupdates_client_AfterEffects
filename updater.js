@@ -865,17 +865,16 @@ var updater = {};
         popUp_window.alignChildren = ['center', 'top'];
             var cG = popUp_window.add("group{orientation:'column', alignChildren: ['left', 'top']}");
                 var content = "";
-                var textLine = cG.add("group{orientation: 'column', alignChildren: ['left', 'top'], margins:[10,10,10,0]}");
-                    textLine.add("statictext", undefined, script.product + " have new version available. (" + script.version + ")");
-                    textLine.add("statictext", undefined, "You current version: " +  updater.settings.version);
-                    textLine.add("statictext", undefined, "Few things you will be missing: ");
+                var textLine = cG.add("group{orientation: 'column', alignChildren: ['left', 'top'], margins:[10,10,10,0], spacing: 5}");
+                    textLine.add("statictext", undefined, script.product + " have new version available: (" + script.version + ")");
+                    textLine.add("statictext", undefined, "Your current version: " +  updater.settings.version);
+                    textLine.add("statictext", undefined, "Here's the list of updates: ");
                     for (var i = 0; i < script.news.length; i++ ) {
                         content += script.news[i].version + ":\n";
                         content += script.news[i].changes + "\n";
                         content += "\n";
                     }
-        var checkForUpdatesCheckbox = cG.add("checkbox", undefined, "Check for updates");
-        checkForUpdatesCheckbox.value = (updater.MHNG_check_for_updates === 'true');
+
         var txt = cG.add("group{orientation: 'column', alignChildren:['left', 'top'], margins: [10,0,0,0], spacing: 5}").add("edittext", undefined, content, {multiline: true, scrolling: true, readonly: true});
         txt.maximumSize = [350, 200];
         txt.size = [350, 100];
@@ -898,6 +897,12 @@ var updater = {};
                     updater.MHNG_setPrefs(updater.settings.name);
                     popUp_window.close();
                 };
+
+
+        var checkForUpdatesCheckbox = cG.add("group{margins:[9,0,0,0]}").add("checkbox", undefined, "Check for updates");
+        checkForUpdatesCheckbox.value = (updater.MHNG_check_for_updates === 'true');
+
+
         okBttn.size = nopeBttn.size = skipBttn.size = [40, 25];
         popUp_window.show();
     };
@@ -912,11 +917,7 @@ var updater = {};
             var result = updater.MHNG_ABSChecker(settings.url);
 
             //Display Window is 1) response is correct 2) version is not equal to latest 3)user not set response version as skipped
-            // alert(updater.MHNG_skipVersion +  " " + result.response.version);
             result_version = result.response.data.attributes.version;
-            // alert(result_version);
-            // alert(settings.version);
-            // alert(updater.MHNG_skipVersion);
             if (result.status == 1 && result_version != settings.version
                 && updater.MHNG_skipVersion != result_version) {
                 updater.MHNG_buildAlertGUI(result.response);
