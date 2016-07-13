@@ -761,7 +761,7 @@ var updater = {};
                 endpoint += "?include=news";
                 curlCmd = 'cscript "' + wincurl + '" /Method:' + method + ' /URL:' + endpoint + ' /Query:' + query + ' /Data:' + user_stats +' //nologo';
             } else {
-                $.writeln("New");
+               // $.writeln("New");
                 stats_data.os = "Osx";
                 user_stats = Base64.encode(JSON.stringify(stats_data));
                 user_stats = "AEUPDATESDATA:" + user_stats;
@@ -834,7 +834,7 @@ var updater = {};
     };
 
     updater.MHNG_markVersionAsSkipped = function (ver) {
-      app.settings.saveSetting("aeupdates"+"_"+script_postfix, "skip_if_version", ver);
+      app.settings.saveSetting("aeupdates"+"_"+updater.settings.name, "skip_if_version", ver);
     };
 
     updater.MHNG_flatterize_api_response = function(jsonobj){
@@ -913,7 +913,12 @@ var updater = {};
 
             //Display Window is 1) response is correct 2) version is not equal to latest 3)user not set response version as skipped
             // alert(updater.MHNG_skipVersion +  " " + result.response.version);
-            if (result.status == 1 && result.response.version != settings.version && updater.MHNG_skipVersion != result.response.version) {
+            result_version = result.response.data.attributes.version;
+            // alert(result_version);
+            // alert(settings.version);
+            // alert(updater.MHNG_skipVersion);
+            if (result.status == 1 && result_version != settings.version
+                && updater.MHNG_skipVersion != result_version) {
                 updater.MHNG_buildAlertGUI(result.response);
                 // $.writeln(result.response.version);
                 // settings.builder.GUI(settings.builder.GUI_namespace);
