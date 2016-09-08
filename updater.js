@@ -916,7 +916,7 @@ var updater = {};
         if (settings.builder) {
             var builded_url = settings.url.slice(-1) === '/' ? settings.url : settings.url + '/';
             builded_url += settings.version + "/";
-            var result = updater.MHNG_ABSChecker(settings.url);
+            var result = updater.MHNG_ABSChecker(builded_url);
 
             //Display Window is 1) response is correct 2) version is not equal to latest 3)user not set response version as skipped
             result_version = result.response.data.attributes.version;
