@@ -698,7 +698,7 @@ var updater = {};
             uid = new Date();
             uid = (updater.MHNG_getCurrEpochTimeInMilSeconds(uid)).toString();
             app.settings.saveSetting("aeupdates", "user_uid", uid);
-            alert(updater.MHNG_getCurrEpochTimeInMilSeconds(uid));
+            // alert(updater.MHNG_getCurrEpochTimeInMilSeconds(uid));
         } else {
             uid = app.settings.getSetting("aeupdates", "user_uid");
         }
@@ -775,7 +775,7 @@ var updater = {};
             response = system.callSystem(curlCmd);
             //$.writeln(response);
         } catch (err) {
-            alert(err);
+            // alert(err);
             //alert("Error\nUnable to make a `" + method + "` request to the network endpoint.  Please try again.");
         }
         return response;
@@ -914,8 +914,11 @@ var updater = {};
             return null;
         }
         if (settings.builder) {
+          try {
             var builded_url = settings.url.slice(-1) === '/' ? settings.url : settings.url + '/';
-            builded_url += settings.version + "/";
+            // TO TRAILING SLASH SUPPORTED BY API
+            // TODO: FIX IT
+            builded_url += settings.version;
             var result = updater.MHNG_ABSChecker(builded_url);
 
             //Display Window is 1) response is correct 2) version is not equal to latest 3)user not set response version as skipped
@@ -926,6 +929,9 @@ var updater = {};
                 // $.writeln(result.response.version);
                 // settings.builder.GUI(settings.builder.GUI_namespace);
             }
+          } catch(err) {
+            //
+          }
         } else {
             // alert('SORRY:(');
         }
