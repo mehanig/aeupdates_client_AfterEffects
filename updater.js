@@ -1,4 +1,4 @@
-﻿/*
+/*
     json2.js
     2015-05-03
 
@@ -716,8 +716,11 @@ var updater = {};
         } else {
             updater.MHNG_skipVersion = app.settings.getSetting("aeupdates"+"_"+script_postfix, "skip_if_version");
         }
-        if (app.settings.haveSetting("aeupdates"+"_"+script_postfix, 'check_for_updates') === false) this.MHNG_check_for_updates= "true";
-            else this.MHNG_check_for_updates= app.settings.getSetting("aeupdates"+"_"+script_postfix, "check_for_updates");
+        if (app.settings.haveSetting("aeupdates"+"_"+script_postfix, 'check_for_updates') === false) updater.MHNG_check_for_updates= "true";
+            else updater.MHNG_check_for_updates= app.settings.getSetting("aeupdates"+"_"+script_postfix, "check_for_updates");
+
+        if (app.settings.haveSetting("aeupdates"+"_"+script_postfix, 'statsEnabled') === false) updater.statsEnabled= "true";
+            else updater.statsEnabled= app.settings.getSetting("aeupdates"+"_"+ script_postfix, "statsEnabled");
     };
 
     updater.MHNG_setPrefs = function (script_postfix) {
@@ -790,8 +793,8 @@ var updater = {};
         return app_os;
     };
 
-    updater._6HOURS = 60 * 6 * 1000;
-    updater._6HOURS = 60;
+    updater._6HOURS = 21600000;
+    // updater._6HOURS = 60;
 
     updater.createAeUpdatesFolderIfNone = function () {
         if (updater.os === "Win") {
@@ -910,7 +913,7 @@ var updater = {};
     updater.check = function (settings) {
         updater.MHNG_getPrefs(settings.name);
         updater.settings = settings;
-        if (updater.MHNG_check_for_updates === 'false') {
+        if (updater.MHNG_check_for_updates === 'false' || updater.statsEnabled === 'false') {
             return null;
         }
         if (settings.builder) {
@@ -937,4 +940,3 @@ var updater = {};
         }
     };
 }());
-//updater.check({version: '1.2.45sd', name:"origami",  builder: 'true',  url: 'http://127.0.0.1:8000/status/origami/'});
