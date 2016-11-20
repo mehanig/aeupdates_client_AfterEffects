@@ -925,7 +925,9 @@ var updater = {};
             var result = updater.MHNG_ABSChecker(builded_url);
 
             //Display Window is 1) response is correct 2) version is not equal to latest 3)user not set response version as skipped
-            result_version = result.response.data.attributes.version;
+            if (result.status == 1) {
+                var result_version = result.response.data.attributes.version;
+            }
             if (result.status == 1 && result_version != settings.version
                 && updater.MHNG_skipVersion != result_version) {
                 updater.MHNG_buildAlertGUI(result.response);
