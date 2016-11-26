@@ -910,6 +910,24 @@ var updater = {};
         popUp_window.show();
     };
 
+    updater.MHNG_is_version_old = function (updater_version, result_version) {
+        try {
+            var _updater_version = updater_version.split('.');
+            var _result_version = result_version.split('.');
+            for (var i = 0; i < _updater_version.length; i++) {
+                if (_result_version[i] != undefined && parseInt(_updater_version[i]) != parseInt(_result_version[i])) {
+                    return parseInt(_updater_version[i]) < parseInt(_result_version[i]) ? true : false;
+                }
+            }
+            if (_result_version.length > _updater_version.length) {
+                return true;
+            }
+        }
+        catch (err) {
+        }
+        return false;
+    };
+
     updater.check = function (settings) {
         updater.MHNG_getPrefs(settings.name);
         updater.settings = settings;
@@ -925,11 +943,12 @@ var updater = {};
             var result = updater.MHNG_ABSChecker(builded_url);
 
             //Display Window is 1) response is correct 2) version is not equal to latest 3)user not set response version as skipped
+            // 4) version is less than latest from server
             if (result.status == 1) {
                 var result_version = result.response.data.attributes.version;
             }
             if (result.status == 1 && result_version != settings.version
-                && updater.MHNG_skipVersion != result_version) {
+                && updater.MHNG_skipVersion != result_version && updater.MHNG_is_version_old(settings.version, result_version)) {
                 updater.MHNG_buildAlertGUI(result.response);
                 // $.writeln(result.response.version);
                 // settings.builder.GUI(settings.builder.GUI_namespace);
